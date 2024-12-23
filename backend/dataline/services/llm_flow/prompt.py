@@ -29,6 +29,9 @@ DO NOT just copy the results as the answer. The user can see the results themsel
 You can just talk about the results instead.
 
 If the question does not seem related to the database, just return "I don't know" as the answer.
+
+請用繁體中文回答使用者的問題
+
 """
 
 SQL_SUFFIX = """Begin!
