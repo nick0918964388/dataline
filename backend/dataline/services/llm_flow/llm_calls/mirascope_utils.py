@@ -10,7 +10,7 @@ P = ParamSpec("P")
 
 class OllamaClientOptions(BaseModel):
     base_url: str = os.getenv("OLLAMA_BASE_URL", "http://ollama.webtw.xyz:11434")
-    model: str = os.getenv("LLM_MODEL", "llama3.3")
+    model: str = os.getenv("LLM_MODEL", "llama3.3-extra")
 
 def call(
     model: str,

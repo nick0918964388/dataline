@@ -110,7 +110,12 @@ class QueryGraphService:
         self, query: str, history: Sequence[BaseMessage], top_k: int = 10, suffix: str = SQL_FUNCTIONS_SUFFIX
     ):
         prefix = SQL_PREFIX
-        prefix = prefix.format(dialect=self.toolkit.dialect, top_k=top_k)
+        schema_str = self.db.get_table_info()
+        prefix = prefix.format(
+            dialect=self.toolkit.dialect,
+            top_k=top_k,
+            schema_str=schema_str
+        )
 
         if not history:
             return [

@@ -5,6 +5,9 @@ like using 'users' instead of 'u'.
 
 Prefer using joins to subqueries where possible since that's more efficient.
 
++ Here are the available tables and their schemas in the database:
++ {schema_str}
++
 Given an input question, create a syntactically correct {dialect} query to run,
 then look at the results of the query and return the answer.
 
