@@ -6,9 +6,11 @@ from langchain_core.messages import AIMessage, BaseMessage, ToolCall, ToolMessag
 from langchain_core.utils.function_calling import convert_to_openai_function
 from langgraph.graph import END
 from openai import AuthenticationError, RateLimitError
+from pydantic import BaseModel
 
 from dataline.errors import UserFacingError
 from dataline.models.llm_flow.schema import QueryResultSchema
+from dataline.services.llm_flow.llm_calls.models import OllamaResponse
 from dataline.services.llm_flow.toolkit import (
     ChartGeneratorTool,
     QueryGraphState,
@@ -20,28 +22,8 @@ from dataline.services.llm_flow.llm_calls.mirascope_utils import (
     OllamaClientOptions,
     call,
 )
-from pydantic import BaseModel
 
 NodeName = str
-
-
-class OllamaResponse(BaseModel):
-    content: str
-    tool_calls: list[ToolCall] = []
-
-    @classmethod
-    def parse_tool_calls(cls, raw_tool_calls: list[dict]) -> list[ToolCall]:
-        return [
-            ToolCall(
-                id=f"call_{i}",
-                type="function",
-                function=dict(
-                    name=call.get("function", {}).get("name", ""),
-                    arguments=call.get("function", {}).get("arguments", {})
-                )
-            )
-            for i, call in enumerate(raw_tool_calls)
-        ]
 
 
 class Node(ABC):
