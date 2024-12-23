@@ -3,7 +3,6 @@ from typing import cast
 
 from langchain_core.messages import AIMessage, BaseMessage, ToolCall, ToolMessage
 from langchain_core.utils.function_calling import convert_to_openai_function
-from langchain_openai import ChatOpenAI
 from langgraph.graph import END
 from openai import AuthenticationError, RateLimitError
 
@@ -15,6 +14,10 @@ from dataline.services.llm_flow.toolkit import (
     QueryGraphStateUpdate,
     StateUpdaterTool,
     state_update,
+)
+from dataline.services.llm_flow.llm_calls.mirascope_utils import (
+    OllamaClientOptions,
+    call,
 )
 
 NodeName = str

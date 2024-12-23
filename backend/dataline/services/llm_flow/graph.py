@@ -24,6 +24,10 @@ from dataline.services.llm_flow.toolkit import (
 )
 from dataline.services.llm_flow.utils import ConnectionProtocol, DatalineSQLDatabase as SQLDatabase
 from dataline.utils.utils import forward_connection_errors
+from dataline.services.llm_flow.llm_calls.mirascope_utils import (
+    OllamaClientOptions as ClientOptions,
+    call,
+)
 
 logger = logging.getLogger(__name__)
 

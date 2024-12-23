@@ -36,7 +36,7 @@ from dataline.services.llm_flow.llm_calls.chart_generator import (
     generate_chart_prompt,
 )
 from dataline.services.llm_flow.llm_calls.mirascope_utils import (
-    OpenAIClientOptions,
+    OllamaClientOptions,
     call,
 )
 from dataline.services.llm_flow.utils import DatalineSQLDatabase as SQLDatabase
@@ -517,7 +517,7 @@ class ChartGeneratorTool(StateUpdaterTool):
             "gpt-3.5-turbo",
             response_model=GeneratedChart,
             prompt_fn=generate_chart_prompt,
-            client_options=OpenAIClientOptions(
+            client_options=OllamaClientOptions(
                 api_key=state.options.openai_api_key.get_secret_value(),
                 base_url=state.options.openai_base_url,
             ),
