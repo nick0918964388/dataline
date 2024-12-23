@@ -19,8 +19,14 @@ from dataline.services.llm_flow.llm_calls.mirascope_utils import (
     OllamaClientOptions,
     call,
 )
+from pydantic import BaseModel
 
 NodeName = str
+
+
+class OllamaResponse(BaseModel):
+    content: str
+    tool_calls: list[dict] = []
 
 
 class Node(ABC):
@@ -51,33 +57,25 @@ class CallModelNode(Node):
 
     @classmethod
     def run(cls, state: QueryGraphState) -> QueryGraphStateUpdate:
-        # TODO: Consider replacing with mirascope
-        model = ChatOpenAI(
-            model=state.options.llm_model,
-            base_url=state.options.openai_base_url,
-            api_key=state.options.openai_api_key,
-            temperature=0,
-            streaming=True,
-        )
         sql_tools = state.sql_toolkit.get_tools()
         all_tools = sql_tools + [ChartGeneratorTool()]
         tools = [convert_to_openai_function(t) for t in all_tools]
-        model = cast(ChatOpenAI, model.bind_tools(tools))
-        # This includes tool messages and ai messages at this point
-        # TODO: Useful to limit tokens when graph recursion is very deep
         last_n_messages = state.messages
         try:
-            response = model.invoke(last_n_messages)
-        except RateLimitError as e:
-            body = cast(dict, e.body)
-            raise UserFacingError(body.get("message", "OpenAI API rate limit exceeded"))
-        except AuthenticationError as e:
-            body = cast(dict, e.body)
-            raise UserFacingError(body.get("message", "OpenAI API key rejected"))
+            prompt = "\n".join([f"{msg.type}: {msg.content}" for msg in last_n_messages])
+            response = call(
+                "llama3.3",
+                response_model=OllamaResponse,
+                prompt_fn=lambda x: x,
+                client_options=OllamaClientOptions(),
+            )(prompt)
+            ai_message = AIMessage(
+                content=response.content,
+                tool_calls=response.tool_calls
+            )
+            return state_update(messages=[ai_message])
         except Exception as e:
-            raise UserFacingError(str(e))
-
-        return state_update(messages=[response])
+            raise UserFacingError(f"Ollama API error: {str(e)}")
 
 
 class CallToolNode(Node):
