@@ -77,30 +77,28 @@ class CallModelNode(Node):
         tools = [convert_to_openai_function(t) for t in all_tools]
         last_n_messages = state.messages
         try:
-            prompt = f"""
-            你是一個資料分析助手。請根據以下對話內容，使用適當的工具來回應。
-            可用的工具有：
-            {json.dumps([t.dict() for t in tools], ensure_ascii=False, indent=2)}
-            
-            歷史對話：
-            {"\n".join([f"{msg.type}: {msg.content}" for msg in last_n_messages])}
-            
-            請使用工具來執行查詢並生成圖表。回應格式應為：
-            {{
-                "content": "你的回應內容",
-                "tool_calls": [
-                    {{
-                        "type": "function",
-                        "function": {{
-                            "name": "工具名稱",
-                            "arguments": {{
-                                // 工具參數
-                            }}
-                        }}
-                    }}
-                ]
-            }}
-            """
+            tools_json = json.dumps([t.dict() for t in tools], ensure_ascii=False, indent=2)
+            history = "\n".join([f"{msg.type}: {msg.content}" for msg in last_n_messages])
+            prompt = (
+                "你是一個資料分析助手。請根據以下對話內容，使用適當的工具來回應。\n"
+                f"可用的工具有：\n{tools_json}\n\n"
+                f"歷史對話：\n{history}\n\n"
+                "請使用工具來執行查詢並生成圖表。回應格式應為：\n"
+                "{\n"
+                '    "content": "你的回應內容",\n'
+                '    "tool_calls": [\n'
+                "        {\n"
+                '            "type": "function",\n'
+                '            "function": {\n'
+                '                "name": "工具名稱",\n'
+                '                "arguments": {\n'
+                "                    // 工具參數\n"
+                "                }\n"
+                "            }\n"
+                "        }\n"
+                "    ]\n"
+                "}"
+            )
             response_callable = call(
                 "llama3.3-extra",
                 response_model=OllamaResponse,
