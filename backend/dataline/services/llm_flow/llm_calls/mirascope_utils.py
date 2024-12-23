@@ -2,7 +2,8 @@ from typing import Callable, Literal, ParamSpec, TypeVar
 from pydantic import BaseModel
 import os
 import re
-from .exceptions import UserFacingError
+from dataline.errors import UserFacingError
+import logging
 
 _T = TypeVar("_T", bound=BaseModel)
 P = ParamSpec("P")
