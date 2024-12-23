@@ -43,7 +43,7 @@ from dataline.services.llm_flow.llm_calls.conversation_title_generator import (
     conversation_title_generator_prompt,
 )
 from dataline.services.llm_flow.llm_calls.mirascope_utils import (
-    OpenAIClientOptions,
+    OllamaClientOptions,
     call,
 )
 from dataline.services.settings import SettingsService
@@ -78,23 +78,20 @@ class ConversationService:
         if not conversation.messages:
             return "Untitled chat"
 
-        user_details = await self.settings_service.get_model_details(session)
-        api_key = user_details.openai_api_key.get_secret_value()
-        base_url = user_details.openai_base_url
         first_message_content = conversation.messages[0].message.content
 
         try:
             title_generator_response = call(
-                "gpt-4o-mini",
+                "llama3.3",
                 response_model=ConversationTitleGeneratorResponse,
                 prompt_fn=conversation_title_generator_prompt,
-                client_options=OpenAIClientOptions(api_key=api_key, base_url=base_url),
+                client_options=OllamaClientOptions(),
             )(user_message=first_message_content)
 
             title = title_generator_response.title
             updated_conversation = await self.update_conversation_name(session, conversation_id, title)
             return updated_conversation.name
-        except APIError as e:
+        except Exception as e:
             raise UserFacingError(e)
 
     async def create_conversation(
