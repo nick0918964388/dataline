@@ -2,6 +2,9 @@ from typing import Callable, Literal, ParamSpec, TypeVar
 from pydantic import BaseModel
 import os
 
+_T = TypeVar("_T", bound=BaseModel)
+P = ParamSpec("P")
+
 class OllamaClientOptions(BaseModel):
     base_url: str = os.getenv("OLLAMA_BASE_URL", "http://ollama.webtw.xyz:11434")
     model: str = os.getenv("LLM_MODEL", "llama3.3")
