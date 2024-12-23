@@ -77,7 +77,7 @@ class CallModelNode(Node):
         tools = [convert_to_openai_function(t) for t in all_tools]
         last_n_messages = state.messages
         try:
-            tools_json = json.dumps([t.dict() for t in tools], ensure_ascii=False, indent=2)
+            tools_json = json.dumps(tools, ensure_ascii=False, indent=2)
             history = "\n".join([f"{msg.type}: {msg.content}" for msg in last_n_messages])
             prompt = (
                 "你是一個資料分析助手。請根據以下對話內容，使用適當的工具來回應。\n"
