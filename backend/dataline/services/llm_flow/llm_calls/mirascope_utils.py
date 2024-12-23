@@ -5,9 +5,12 @@ import re
 from dataline.errors import UserFacingError
 import logging
 import json
+from dataline.services.llm_flow.nodes import OllamaResponse
 
 _T = TypeVar("_T", bound=BaseModel)
 P = ParamSpec("P")
+
+logger = logging.getLogger(__name__)
 
 class OllamaClientOptions(BaseModel):
     base_url: str = os.getenv("OLLAMA_BASE_URL", "http://ollama.webtw.xyz:11434")
@@ -39,7 +42,7 @@ def call(
                     parsed["tool_calls"] = OllamaResponse.parse_tool_calls(parsed["tool_calls"])
                 return response_model.model_validate(parsed)
             else:
-                # 如果找不到 JSON，嘗試將純文本回應包裝成所需的格式
+                # 如果找不到 JSON，嘗試將純文本回��包裝成所需的格式
                 if hasattr(response_model, "title"):
                     return response_model.model_validate({"title": response.strip()})
                 else:
