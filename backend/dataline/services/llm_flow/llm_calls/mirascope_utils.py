@@ -26,6 +26,13 @@ def call(
         prompt = prompt_fn(*args, **kwargs)
         response = await ollama_client.generate(prompt)
         # 將回應解析為指定的回應模型
-        return response_model.parse_raw(response)
+        try:
+            return response_model.model_validate_json(response)
+        except Exception as e:
+            # 如果解析失敗，嘗試將純文本回應包裝成所需的格式
+            return response_model.model_validate({
+                "content": response,
+                "tool_calls": []
+            })
     
     return wrapper

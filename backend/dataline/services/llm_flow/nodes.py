@@ -56,19 +56,21 @@ class CallModelNode(Node):
     __name__ = "call_model"
 
     @classmethod
-    def run(cls, state: QueryGraphState) -> QueryGraphStateUpdate:
+    async def run(cls, state: QueryGraphState) -> QueryGraphStateUpdate:
         sql_tools = state.sql_toolkit.get_tools()
         all_tools = sql_tools + [ChartGeneratorTool()]
         tools = [convert_to_openai_function(t) for t in all_tools]
         last_n_messages = state.messages
         try:
             prompt = "\n".join([f"{msg.type}: {msg.content}" for msg in last_n_messages])
-            response = call(
+            response_callable = call(
                 "llama3.3",
                 response_model=OllamaResponse,
                 prompt_fn=lambda x: x,
                 client_options=OllamaClientOptions(),
-            )(prompt)
+            )
+            response = await response_callable(prompt)
+            
             ai_message = AIMessage(
                 content=response.content,
                 tool_calls=response.tool_calls
