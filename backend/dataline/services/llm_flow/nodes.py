@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import cast
+import json
 
 from langchain_core.messages import AIMessage, BaseMessage, ToolCall, ToolMessage
 from langchain_core.utils.function_calling import convert_to_openai_function
@@ -26,7 +27,21 @@ NodeName = str
 
 class OllamaResponse(BaseModel):
     content: str
-    tool_calls: list[dict] = []
+    tool_calls: list[ToolCall] = []
+
+    @classmethod
+    def parse_tool_calls(cls, raw_tool_calls: list[dict]) -> list[ToolCall]:
+        return [
+            ToolCall(
+                id=f"call_{i}",
+                type="function",
+                function=dict(
+                    name=call.get("function", {}).get("name", ""),
+                    arguments=call.get("function", {}).get("arguments", {})
+                )
+            )
+            for i, call in enumerate(raw_tool_calls)
+        ]
 
 
 class Node(ABC):
@@ -62,9 +77,32 @@ class CallModelNode(Node):
         tools = [convert_to_openai_function(t) for t in all_tools]
         last_n_messages = state.messages
         try:
-            prompt = "\n".join([f"{msg.type}: {msg.content}" for msg in last_n_messages])
+            prompt = f"""
+            你是一個資料分析助手。請根據以下對話內容，使用適當的工具來回應。
+            可用的工具有：
+            {json.dumps([t.dict() for t in tools], ensure_ascii=False, indent=2)}
+            
+            歷史對話：
+            {"\n".join([f"{msg.type}: {msg.content}" for msg in last_n_messages])}
+            
+            請使用工具來執行查詢並生成圖表。回應格式應為：
+            {{
+                "content": "你的回應內容",
+                "tool_calls": [
+                    {{
+                        "type": "function",
+                        "function": {{
+                            "name": "工具名稱",
+                            "arguments": {{
+                                // 工具參數
+                            }}
+                        }}
+                    }}
+                ]
+            }}
+            """
             response_callable = call(
-                "llama3.3",
+                "llama3.3-extra",
                 response_model=OllamaResponse,
                 prompt_fn=lambda x: x,
                 client_options=OllamaClientOptions(),
