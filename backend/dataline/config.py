@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import os
 
 from pydantic_settings import BaseSettings
 
@@ -48,6 +49,9 @@ class Config(BaseSettings):
     allowed_origins: str = (
         "http://localhost:7377,http://localhost:5173,http://0.0.0.0:7377,http://0.0.0.0:5173,http://127.0.0.1:7377,http://127.0.0.1:5173"  # comma separated list of origins
     )
+
+    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://ollama.webtw.xyz:11434")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "llama2-vision")
 
     @property
     def has_auth(self) -> bool:

@@ -18,6 +18,8 @@ services:
       ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://10.10.10.168:7377,http://10.10.10.168:5173}"
       AUTH_USERNAME: "${AUTH_USERNAME}"
       AUTH_PASSWORD: "${AUTH_PASSWORD}"
+      OLLAMA_BASE_URL: "http://ollama.webtw.xyz:11434"
+      LLM_MODEL: "llama2-vision"
     working_dir: /home/dataline/backend
     command: ["bash", "-c", "python -m alembic upgrade head && python -m uvicorn dataline.main:app --port=7377 --host=0.0.0.0 --reload"]
     volumes:
