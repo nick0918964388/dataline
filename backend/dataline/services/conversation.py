@@ -81,12 +81,13 @@ class ConversationService:
         first_message_content = conversation.messages[0].message.content
 
         try:
-            title_generator_response = call(
+            title_generator_callable = call(
                 "llama3.3",
                 response_model=ConversationTitleGeneratorResponse,
                 prompt_fn=conversation_title_generator_prompt,
                 client_options=OllamaClientOptions(),
-            )(user_message=first_message_content)
+            )
+            title_generator_response = await title_generator_callable(user_message=first_message_content)
 
             title = title_generator_response.title
             updated_conversation = await self.update_conversation_name(session, conversation_id, title)

@@ -1,6 +1,8 @@
 from typing import Callable, Literal, ParamSpec, TypeVar
 from pydantic import BaseModel
 import os
+import re
+from .exceptions import UserFacingError
 
 _T = TypeVar("_T", bound=BaseModel)
 P = ParamSpec("P")
@@ -27,12 +29,22 @@ def call(
         response = await ollama_client.generate(prompt)
         # 將回應解析為指定的回應模型
         try:
-            return response_model.model_validate_json(response)
+            # 使用正則表達式找出 JSON 部分
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                json_str = json_match.group()
+                return response_model.model_validate_json(json_str)
+            else:
+                # 如果找不到 JSON，嘗試將純文本回應包裝成所需的格式
+                if hasattr(response_model, "title"):
+                    return response_model.model_validate({"title": response.strip()})
+                else:
+                    return response_model.model_validate({
+                        "content": response,
+                        "tool_calls": []
+                    })
         except Exception as e:
-            # 如果解析失敗，嘗試將純文本回應包裝成所需的格式
-            return response_model.model_validate({
-                "content": response,
-                "tool_calls": []
-            })
+            logger.error(f"Error parsing Ollama response: {str(e)}")
+            raise UserFacingError(f"無法解析 AI 回應：{str(e)}")
     
     return wrapper
