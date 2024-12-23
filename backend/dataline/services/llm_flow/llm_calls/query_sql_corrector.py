@@ -1,6 +1,4 @@
 from typing import Optional, Type
-from mirascope import tags
-from mirascope.openai import OpenAICallParams, OpenAIExtractor
 from pydantic import BaseModel
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -38,7 +36,6 @@ class OllamaExtractor:
             raise
 
 
-@tags(["version:0001"])
 class QuerySQLCorrectorCall:
     def __init__(self):
         self.ollama_client = OllamaExtractor()
@@ -82,7 +79,7 @@ class QuerySQLCorrectorCall:
                 )
             else:
                 # 如果找不到 JSON，嘗試從文本中解析意圖
-                needs_correction = "���要修正" in response or "需要修改" in response
+                needs_correction = "要修正" in response or "需要修改" in response
                 # 嘗試提取修改後的查詢
                 query_match = re.search(r'SELECT.*?;', response, re.DOTALL | re.IGNORECASE)
                 modified_query = query_match.group() if query_match else None
