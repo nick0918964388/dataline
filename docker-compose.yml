@@ -19,7 +19,8 @@ services:
       AUTH_USERNAME: "${AUTH_USERNAME}"
       AUTH_PASSWORD: "${AUTH_PASSWORD}"
       OLLAMA_BASE_URL: "http://ollama.webtw.xyz:11434"
-      LLM_MODEL: "llama2-vision"
+      LLM_MODEL: "llama3.3"
+      OPENAI_API_KEY: ""
     working_dir: /home/dataline/backend
     command: ["bash", "-c", "python -m alembic upgrade head && python -m uvicorn dataline.main:app --port=7377 --host=0.0.0.0 --reload"]
     volumes:

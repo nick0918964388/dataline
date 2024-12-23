@@ -1,32 +1,28 @@
 from typing import Callable, Literal, ParamSpec, TypeVar
-
-from mirascope.core import openai
-from mirascope.core.base import BaseMessageParam
-from openai import OpenAI
 from pydantic import BaseModel
+import os
 
-
-class OpenAIClientOptions(BaseModel):
-    api_key: str
-    base_url: str | None = None
-
-
-AvailableModels = Literal["gpt-3.5-turbo"] | Literal["gpt-4o-mini"]
-
-_T = TypeVar("_T", bound=BaseModel)
-P = ParamSpec("P")
-
+class OllamaClientOptions(BaseModel):
+    base_url: str = os.getenv("OLLAMA_BASE_URL", "http://ollama.webtw.xyz:11434")
+    model: str = os.getenv("LLM_MODEL", "llama3.3")
 
 def call(
-    model: AvailableModels,
+    model: str,
     response_model: type[_T],
-    prompt_fn: Callable[P, list[BaseMessageParam]],
-    client_options: OpenAIClientOptions,
+    prompt_fn: Callable[P, str],
+    client_options: OllamaClientOptions,
 ) -> Callable[P, _T]:
-    # Only openai supported for now, just use that
-    return openai.call(
-        model=model,
-        response_model=response_model,
-        json_mode=True,
-        client=OpenAI(api_key=client_options.api_key, base_url=client_options.base_url),
-    )(prompt_fn)
+    from .query_sql_corrector import OllamaExtractor
+    
+    ollama_client = OllamaExtractor(
+        model_name=client_options.model,
+        base_url=client_options.base_url
+    )
+    
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> _T:
+        prompt = prompt_fn(*args, **kwargs)
+        response = await ollama_client.generate(prompt)
+        # 將回應解析為指定的回應模型
+        return response_model.parse_raw(response)
+    
+    return wrapper
